@@ -1,0 +1,27 @@
+{{- if .Values.kafka }}
+{{- $passwordSecret := ( include "callisto-restapi.keystore-password" . ) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "callisto-restapi.scripts-configmap-name" . }}
+  labels:
+    {{- include "callisto-restapi.labels" . | nindent 4 }}
+data:
+  {{ (.Files.Glob "scripts/kafka/**.sh").AsConfig | nindent 2 }}
+{{- if .Values.kafka.permissions }}
+  permissions.txt: |-
+    {{- .Values.kafka.permissions | nindent 4 }}
+{{- end }}
+{{- if .Values.kafka.createTopics }}
+  topics.txt: |-
+  {{- range .Values.kafka.createTopics }}
+    {{- . | nindent 4 }}
+  {{- end }}
+{{- end }}
+  kafka.properties: |-
+    security.protocol=SSL
+    ssl.keystore.location=/keystore/keystore.jks
+    ssl.keystore.password={{- $passwordSecret }}
+    ssl.key.password={{- $passwordSecret }}
+{{- end }}

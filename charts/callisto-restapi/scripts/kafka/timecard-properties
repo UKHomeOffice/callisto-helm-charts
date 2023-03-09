@@ -1,0 +1,4 @@
+security.protocol=SSL
+ssl.keystore.location=/keystore/keystore.jks
+ssl.keystore.password=${KEYSTORE_PASSWORD}
+ssl.key.password=${KEYSTORE_PASSWORD}
