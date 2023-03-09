@@ -1,9 +1,16 @@
+{{- $databaseSchema := required ".Values.databaseSchema is required." .Values.databaseSchema -}}
+{{- $kafkaIdentity := required ".Values.kafka.identity is required." .Values.kafka.identity -}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "callisto-restapi.fullname" . }}
   labels:
     {{- include "callisto-restapi.labels" . | nindent 4 }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -20,11 +27,6 @@ spec:
       labels:
         {{- include "callisto-restapi.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "callisto-restapi.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -35,18 +37,76 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
+{{- if .Values.kafka }}
+          volumeMounts:
+            - mountPath: /keystore
+              name: keystore-volume
+{{- end }}
+          env: 
+            {{- include "callisto-restapi.databaseEnvironmentVariables" . | nindent 12 }}
           livenessProbe:
             httpGet:
-              path: /
+              path: /v3/api-docs
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /v3/api-docs
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      initContainers:
+        - name: database-changesets
+          image: "{{ .Values.image.databaseRepository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env: 
+            {{- include "callisto-restapi.databaseEnvironmentVariables" . | nindent 12 }}
+          args:
+            - "--url=jdbc:postgresql://$(DATABASE_ENDPOINT):$(DATABASE_PORT)/$(DATABASE_NAME)"
+            - "--username=$(DATABASE_USERNAME)"
+            - "--password=$(DATABASE_PASSWORD)"
+            - "--changeLogFile=changelog/db.changelog-main.yml"
+            - "--liquibaseSchemaName={{ $databaseSchema }}"
+            - "update"
+{{- if .Values.kafka }}
+        - name: create-keystore
+          # TODO: swap bak to ECR
+          # image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/awscli-java-openssl:latest
+          image: quay.io/ukhomeofficedigital/awscli-java-openssl:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env: 
+            {{- include "callisto-restapi.mskEnvironmentVariables" . | nindent 12 }}
+            {{- include "callisto-restapi.kafkaEnvironmentVariables" . | nindent 12 }}
+          command: [ "/bin/sh" ]
+          args: [ "/scripts/create-keystore.sh", "{{ $kafkaIdentity }}", "/keystore" ,"$(AWS_CERTIFICATE_AUTHORITY_ARN)", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "$(AWS_ACCESS_KEY)", "$(AWS_SECRET_KEY)"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: keystore-volume
+              mountPath: /keystore
+        - name: create-topic
+          # TODO: Change image back
+          # image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/kafka
+          image: bitnami/kafka:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env: 
+            {{- include "callisto-restapi.mskEnvironmentVariables" . | nindent 12 }}
+            {{- include "callisto-restapi.kafkaEnvironmentVariables" . | nindent 12 }}
+          command: [ "/bin/bash" ]
+          args: [ "/scripts/create-acls.sh", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "$(KAFKA_TOPIC)"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: keystore-volume
+              mountPath: /keystore
+      volumes:
+      - name: scripts
+        configMap:
+            name: {{ include "callisto-restapi.scripts-configmap-name" . }}
+      - name: keystore-volume
+        emptyDir: { }
+{{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

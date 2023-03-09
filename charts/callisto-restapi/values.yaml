@@ -5,28 +5,21 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: ""
+  databaseRepository: ""
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext: 
+  runAsGroup: 1001
+  runAsUser: 1001
+  fsGroup: 2000
 
 securityContext: {}
   # capabilities:
@@ -39,18 +32,18 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
+  targetPort: 9090
 
 ingress:
   enabled: false
-  className: ""
-  annotations: {}
+  className: nginx-internal
+  cors:
+    disabled: false
+  annotations:
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+  # annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
