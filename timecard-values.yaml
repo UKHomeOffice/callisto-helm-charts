@@ -1,0 +1,39 @@
+image:
+  repository: quay.io/ukhomeofficedigital/callisto-timecard-restapi
+  databaseRepository: quay.io/ukhomeofficedigital/callisto-timecard-database
+  tag: latest
+  pullPolicy: Always # TODO: Branch only
+
+service:
+  port: 3000
+
+deploymentAnnotations:
+  downscaler/uptime: Mon-Fri 08:00-20:00 Europe/London
+
+kafka:
+  defaultTopic: callisto-timecard-timeentries
+  createTopics: 
+    - callisto-timecard-timeentries
+  identity: timecard-restapi
+  permissions: |-
+    # Timecard prefix permissions
+    --topic timecard --resource-pattern-type prefixed
+    User:timecard-restapi     Write       Allow
+    User:timecard-restapi     Describe    Allow
+  mskSecretKeyRefName: callisto-dev-msk
+  bootstrapSecretKeyRefName: callisto-dev-bootstrap
+
+resources:
+  requests:
+    memory: '512Mi'
+    cpu: '500m'
+  limits:
+    memory: '1Gi'
+    cpu: '1500m'
+
+databaseSecretKeyRefName: callistodev-rds
+databaseSchema: timecard
+
+ingress:
+  enabled: true
+  host: timecard.dev.callisto-notprod.homeoffice.gov.uk.localhost
