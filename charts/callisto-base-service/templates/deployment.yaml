@@ -1,3 +1,6 @@
+{{- $ecrRepository := "340268328991.dkr.ecr.eu-west-2.amazonaws.com/" -}}
+{{- $kafkaIdentity := required ".Values.kafka.identity is required." .Values.kafka.identity -}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,6 +44,28 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.kafka }}
+      initContainers:
+        - name: create-keystore
+          image: {{ $ecrRepository }}callisto/awscli-java-openssl:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- include "callisto-base-service.mskEnvironmentVariables" . | nindent 12 }}
+            {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
+          command: [ "/bin/sh" ]
+          args: [ "/scripts/create-keystore.sh", "{{ $kafkaIdentity }}", "/keystore" ,"$(AWS_CERTIFICATE_AUTHORITY_ARN)", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "$(AWS_ACCESS_KEY)", "$(AWS_SECRET_KEY)"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: keystore-volume
+              mountPath: /keystore
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "callisto-base-service.scripts-configmap-name" . }}
+        - name: keystore-volume
+          emptyDir: { }
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

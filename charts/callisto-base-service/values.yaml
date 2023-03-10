@@ -14,8 +14,10 @@ fullnameOverride: ""
 
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  runAsGroup: 1001
+  runAsUser: 1001
+  fsGroup: 2000
 
 securityContext: {}
   # capabilities:
