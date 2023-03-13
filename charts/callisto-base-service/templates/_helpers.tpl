@@ -46,6 +46,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "callisto-base-service.selectorLabels" -}}
+app: {{ include "callisto-base-service.fullname" . }}
 app.kubernetes.io/name: {{ include "callisto-base-service.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}

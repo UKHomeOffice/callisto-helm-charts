@@ -44,6 +44,11 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
+          volumeMounts:
+            - mountPath: /keystore
+              name: keystore-volume
       {{- if .Values.kafka }}
       initContainers:
         - name: create-keystore
