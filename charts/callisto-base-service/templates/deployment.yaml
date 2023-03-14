@@ -1,0 +1,85 @@
+{{- $ecrRepository := "340268328991.dkr.ecr.eu-west-2.amazonaws.com/" -}}
+{{- $kafkaIdentity := required ".Values.kafka.identity is required." .Values.kafka.identity -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "callisto-base-service.fullname" . }}
+  labels:
+    {{- include "callisto-base-service.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "callisto-base-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "callisto-base-service.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "callisto-base-service.deploymentImageName" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.image.args }}
+          command: ["/bin/sh"]
+            {{- with .Values.image.args }}
+          args:
+              {{- toYaml . | nindent 10 }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
+          volumeMounts:
+            - mountPath: /keystore
+              name: keystore-volume
+      {{- if .Values.kafka }}
+      initContainers:
+        - name: create-keystore
+          image: {{ $ecrRepository }}callisto/awscli-java-openssl:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- include "callisto-base-service.mskEnvironmentVariables" . | nindent 12 }}
+            {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
+          command: [ "/bin/sh" ]
+          args: [ "/scripts/create-keystore.sh", "{{ $kafkaIdentity }}", "/keystore" ,"$(AWS_CERTIFICATE_AUTHORITY_ARN)", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "$(AWS_ACCESS_KEY)", "$(AWS_SECRET_KEY)"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: keystore-volume
+              mountPath: /keystore
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "callisto-base-service.scripts-configmap-name" . }}
+        - name: keystore-volume
+          emptyDir: { }
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

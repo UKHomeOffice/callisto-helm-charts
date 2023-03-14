@@ -1,0 +1,17 @@
+{{- if .Values.kafka }}
+{{- $passwordSecret := ( include "callisto-base-service.keystore-password" . ) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "callisto-base-service.scripts-configmap-name" . }}
+  labels:
+    {{- include "callisto-base-service.labels" . | nindent 4 }}
+data:
+  {{ (.Files.Glob "scripts/kafka/**.sh").AsConfig | nindent 2 }}
+  kafka.properties: |-
+    security.protocol=SSL
+    ssl.keystore.location=/keystore/keystore.jks
+    ssl.keystore.password={{- $passwordSecret }}
+    ssl.key.password={{- $passwordSecret }}
+{{- end }}
