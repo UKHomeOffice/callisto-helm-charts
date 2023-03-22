@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "callisto-base-service.fullname" . }}
+  labels:
+    app: {{ include "callisto-base-service.fullname" . }}
+spec:
+  selector:
+    app: {{ include "callisto-base-service.fullname" . }}
+  type: ClusterIP
+  ports:
+    - name: https
+      port: {{ .Values.service.port }}
+      targetPort: 8080
+      protocol: TCP

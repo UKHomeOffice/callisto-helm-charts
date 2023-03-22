@@ -1,0 +1,10 @@
+apiVersion: v2
+name: callisto-restapi-service
+description: A Helm chart for a Callisto REST API
+type: application
+version: 0.1.0
+dependencies:
+  - name: callisto-base-service
+    version: 0.1.2
+    repository: file://../callisto-base-service
+#    repository: https://ukhomeoffice.github.io/callisto-helm-charts/

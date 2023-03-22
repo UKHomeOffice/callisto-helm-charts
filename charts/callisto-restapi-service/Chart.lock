@@ -1,0 +1,6 @@
+dependencies:
+- name: callisto-base-service
+  repository: file://../callisto-base-service
+  version: 0.1.2
+digest: sha256:4eef87d83cc0ff76e325077ac918e1051e3c0db5bb3833cac6484053f805477d
+generated: "2023-03-22T14:47:50.689146Z"
