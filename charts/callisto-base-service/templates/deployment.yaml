@@ -1,5 +1,5 @@
 {{- $ecrRepository := "340268328991.dkr.ecr.eu-west-2.amazonaws.com/" -}}
-#{{- $kafkaIdentity := required ".Values.kafka.identity is required." .Values.kafka.identity -}}
+{{- $kafkaIdentity := required ".Values.kafka.identity is required." .Values.kafka.identity -}}
 ---
 apiVersion: apps/v1
 kind: Deployment

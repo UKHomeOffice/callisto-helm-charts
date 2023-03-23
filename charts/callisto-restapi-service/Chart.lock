@@ -1,6 +1,6 @@
 dependencies:
 - name: callisto-base-service
-  repository: file://../callisto-base-service
+  repository: https://ukhomeoffice.github.io/callisto-helm-charts/
   version: 0.1.2
-digest: sha256:4eef87d83cc0ff76e325077ac918e1051e3c0db5bb3833cac6484053f805477d
-generated: "2023-03-22T14:47:50.689146Z"
+digest: sha256:f06c1900d3513656f2fcd8530dd191d43b6356c8117b997b7435c4c897c3cb59
+generated: "2023-03-23T11:56:08.141158Z"

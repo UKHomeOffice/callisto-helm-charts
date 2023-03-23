@@ -10,6 +10,12 @@ kafka:
   defaultTopic: "balance-calculator-topic"
 service:
   port: 9090
+
+ingress:
+  host: test-accruals.dev.callisto-notprod.homeoffice.gov.uk
+  tls_secret_name: test-accruals-tls
+  cors_origin: "https://*.dev.callisto-notprod.homeoffice.gov.uk"
+
 #env:
 #  database:
 #    - name: DATABASE_NAME

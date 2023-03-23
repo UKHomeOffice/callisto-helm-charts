@@ -6,5 +6,4 @@ version: 0.1.0
 dependencies:
   - name: callisto-base-service
     version: 0.1.2
-    repository: file://../callisto-base-service
-#    repository: https://ukhomeoffice.github.io/callisto-helm-charts/
+    repository: https://ukhomeoffice.github.io/callisto-helm-charts/
