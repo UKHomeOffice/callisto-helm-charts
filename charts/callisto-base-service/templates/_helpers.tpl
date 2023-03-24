@@ -119,6 +119,38 @@ Kafka environment variables
 {{- end }}
 
 {{/*
+Database environment variables
+*/}}
+{{- define "callisto-base-service.dbEnvironmentVariables" -}}
+{{- $dbSecretKeyRefName := required ".Values.db.secretKeyRefName is required." .Values.db.secretKeyRefName -}}
+- name: DATABASE_NAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: db_name
+- name: DATABASE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: username
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: password
+- name: DATABASE_ENDPOINT
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: endpoint
+- name: DATABASE_PORT
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: port
+{{- end }}
+
+{{/*
 Create a default name for keystore password secret name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}

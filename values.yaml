@@ -1,3 +1,12 @@
+containerRegistry:
+  url: quay.io/ukhomeofficedigital/
+  restApiRepository:
+    name: callisto-timecard-restapi
+    tag: latest
+  databaseRepository:
+    name: callisto-timecard-database
+    tag: latest
+
 image:
   repository: quay.io/ukhomeofficedigital/callisto-timecard-restapi
   tag: "latest"
@@ -6,6 +15,10 @@ kafka:
   mskSecretKeyRefName: "callisto-dev-msk"
   bootstrapSecretKeyRefName: "callisto-dev-bootstrap"
   defaultTopic: "test-timecard-topic"
+db:
+  secretKeyRefName: "callistodev-rds"
+  schemaName: "timecard"
+
 service:
   containerPort: 9090
 
@@ -13,31 +26,3 @@ ingress:
   host: test-timecard.dev.callisto-notprod.homeoffice.gov.uk
   tls_secret_name: test-timecard-tls
   cors_origin: "https://*.dev.callisto-notprod.homeoffice.gov.uk"
-
-env:
-  database:
-    - name: DATABASE_NAME
-      valueFrom:
-        secretKeyRef:
-          name: callistodev-rds
-          key: db_name
-    - name: DATABASE_USERNAME
-      valueFrom:
-        secretKeyRef:
-          name: callistodev-rds
-          key: username
-    - name: DATABASE_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: callistodev-rds
-          key: password
-    - name: DATABASE_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: callistodev-rds
-          key: endpoint
-    - name: DATABASE_PORT
-      valueFrom:
-        secretKeyRef:
-          name: callistodev-rds
-          key: port

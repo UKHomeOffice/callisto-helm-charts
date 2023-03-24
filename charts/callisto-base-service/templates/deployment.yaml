@@ -1,5 +1,7 @@
 {{- $ecrRepository := "340268328991.dkr.ecr.eu-west-2.amazonaws.com/" -}}
 {{- $kafkaIdentity := required ".Values.kafka.identity is required." .Values.kafka.identity -}}
+{{/*TODO: database schema should not be mandatory*/}}
+{{- $databaseSchema := required ".Values.db.schemaName is required." .Values.db.schemaName -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -46,12 +48,33 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
             {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
-            {{- toYaml .Values.env.database | nindent 12 }}
+            {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
           volumeMounts:
             - mountPath: /keystore
               name: keystore-volume
+{{/*TODO*/}}
+{{/*      {{- if .Values.db }}*/}}
+{{/*      {{- end }}*/}}
       {{- if .Values.kafka }}
       initContainers:
+        - name: database-schema-creation
+          image: {{ $ecrRepository }}callisto/postgres:latest
+          env: {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
+          command:
+            - "sh"
+            - "-c"
+            - "export PGPASSWORD=$DATABASE_PASSWORD; psql postgresql://$DATABASE_ENDPOINT:$DATABASE_PORT/$DATABASE_NAME -U $DATABASE_USERNAME -c 'CREATE SCHEMA IF NOT EXISTS {{ $databaseSchema }};'"
+        - name: database-migrations
+          image: {{ .Values.containerRegistry.url }}{{ .Values.containerRegistry.databaseRepository.name}}:{{ .Values.containerRegistry.databaseRepository.tag }}
+          imagePullPolicy: Always
+          env: {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
+          args:
+            - "--url=jdbc:postgresql://$(DATABASE_ENDPOINT):$(DATABASE_PORT)/$(DATABASE_NAME)"
+            - "--username=$(DATABASE_USERNAME)"
+            - "--password=$(DATABASE_PASSWORD)"
+            - "--changeLogFile=changelog/db.changelog-main.yml"
+            - "--liquibaseSchemaName={{ $databaseSchema }}"
+            - "update"
         - name: create-keystore
           image: {{ $ecrRepository }}callisto/awscli-java-openssl:latest
           imagePullPolicy: {{ .Values.image.pullPolicy }}
