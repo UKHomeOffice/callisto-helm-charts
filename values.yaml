@@ -1,15 +1,10 @@
-containerRegistry:
-  url: quay.io/ukhomeofficedigital/
-  restApiRepository:
-    name: callisto-timecard-restapi
-    tag: latest
-  databaseRepository:
-    name: callisto-timecard-database
-    tag: latest
+containerImage:
+  repositoryName: callisto-timecard-restapi
+  tag: latest
+databaseImage:
+  repositoryName: callisto-timecard-database
+  tag: latest
 
-image:
-  repository: quay.io/ukhomeofficedigital/callisto-timecard-restapi
-  tag: "latest"
 kafka:
   identity: test-timecard
   mskSecretKeyRefName: "callisto-dev-msk"

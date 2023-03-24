@@ -58,10 +58,17 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Image name and tag for the Callisto component being deployed
+Image name and tag for the main Callisto container being deployed
 */}}
-{{- define "callisto-base-service.deploymentImageName" -}}
-{{- required ".Values.image.repository is required" .Values.image.repository }}:{{ required ".Values.image.tag is required" .Values.image.tag }}
+{{- define "callisto-base-service.containerImageName" -}}
+{{ .Values.containerRegistryUrl }}{{- required ".Values.containerImage.repositoryName is required" .Values.containerImage.repositoryName }}:{{ required ".Values.containerImage.tag is required" .Values.containerImage.tag }}
+{{- end }}
+
+{{/*
+Image name and tag for the database migration init container
+*/}}
+{{- define "callisto-base-service.databaseMigrationImageName" -}}
+{{ .Values.containerRegistryUrl }}{{- required ".Values.databaseImage.repositoryName is required" .Values.databaseImage.repositoryName }}:{{ required ".Values.databaseImage.tag is required" .Values.databaseImage.tag }}
 {{- end }}
 
 {{/*
