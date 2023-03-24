@@ -3,7 +3,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "callisto-base-service.fullname" . }}-ingress
+  name: {{ include "callisto-base-service.fullname" . }}
   labels:
     app: {{ include "callisto-base-service.fullname" . }}
     cert-manager.io/solver: route53
@@ -29,5 +29,5 @@ spec:
                 service:
                   name: {{ include "callisto-base-service.fullname" . }}
                   port:
-                    number: {{ .Values.service.port }}
+                    number: {{ .Values.servicePort }}
 {{- end }}

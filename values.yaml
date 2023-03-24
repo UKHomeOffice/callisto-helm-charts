@@ -1,45 +1,43 @@
 image:
-  repository: quay.io/ukhomeofficedigital/callisto-accruals-restapi
+  repository: quay.io/ukhomeofficedigital/callisto-timecard-restapi
   tag: "latest"
-#  args: ["-c", "tail -f /dev/null"]
-#fullnameOverride: "balance-calculator"
 kafka:
-  identity: balance-calculator
+  identity: test-timecard
   mskSecretKeyRefName: "callisto-dev-msk"
   bootstrapSecretKeyRefName: "callisto-dev-bootstrap"
-  defaultTopic: "balance-calculator-topic"
+  defaultTopic: "test-timecard-topic"
 service:
-  port: 9090
+  containerPort: 9090
 
 ingress:
-  host: test-accruals.dev.callisto-notprod.homeoffice.gov.uk
-  tls_secret_name: test-accruals-tls
+  host: test-timecard.dev.callisto-notprod.homeoffice.gov.uk
+  tls_secret_name: test-timecard-tls
   cors_origin: "https://*.dev.callisto-notprod.homeoffice.gov.uk"
 
-#env:
-#  database:
-#    - name: DATABASE_NAME
-#      valueFrom:
-#        secretKeyRef:
-#          name: callistodev-rds
-#          key: db_name
-#    - name: DATABASE_USERNAME
-#      valueFrom:
-#        secretKeyRef:
-#          name: callistodev-rds
-#          key: username
-#    - name: DATABASE_PASSWORD
-#      valueFrom:
-#        secretKeyRef:
-#          name: callistodev-rds
-#          key: password
-#    - name: DATABASE_ENDPOINT
-#      valueFrom:
-#        secretKeyRef:
-#          name: callistodev-rds
-#          key: endpoint
-#    - name: DATABASE_PORT
-#      valueFrom:
-#        secretKeyRef:
-#          name: callistodev-rds
-#          key: port
+env:
+  database:
+    - name: DATABASE_NAME
+      valueFrom:
+        secretKeyRef:
+          name: callistodev-rds
+          key: db_name
+    - name: DATABASE_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: callistodev-rds
+          key: username
+    - name: DATABASE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: callistodev-rds
+          key: password
+    - name: DATABASE_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: callistodev-rds
+          key: endpoint
+    - name: DATABASE_PORT
+      valueFrom:
+        secretKeyRef:
+          name: callistodev-rds
+          key: port

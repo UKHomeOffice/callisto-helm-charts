@@ -12,7 +12,7 @@ spec:
   type: ClusterIP
   ports:
     - name: https
-      port: {{ .Values.service.port }}
-      targetPort: 8080
+      port: {{ .Values.servicePort }}
+      targetPort: {{ .Values.service.containerPort }}
       protocol: TCP
-  {{- end }}
+{{- end }}
