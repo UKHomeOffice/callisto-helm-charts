@@ -63,7 +63,7 @@ spec:
             - "export PGPASSWORD=$DATABASE_PASSWORD; psql postgresql://$DATABASE_ENDPOINT:$DATABASE_PORT/$DATABASE_NAME -U $DATABASE_USERNAME -c 'CREATE SCHEMA IF NOT EXISTS {{ .Values.db.schemaName }};'"
         - name: database-migrations
           image: {{ include "callisto-base-service.databaseMigrationImageName" . | quote }}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           env: {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
           args:
             - "--url=jdbc:postgresql://$(DATABASE_ENDPOINT):$(DATABASE_PORT)/$(DATABASE_NAME)"
