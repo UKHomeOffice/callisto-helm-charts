@@ -1,5 +1,5 @@
 #TODO: DO NOT MERGE TO MAIN
-containerImage:
+mainContainerImage:
   repositoryName: callisto-timecard-restapi
   tag: latest
 databaseImage:

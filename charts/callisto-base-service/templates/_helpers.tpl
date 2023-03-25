@@ -61,7 +61,7 @@ Create the name of the service account to use
 Image name and tag for the main Callisto container being deployed
 */}}
 {{- define "callisto-base-service.containerImageName" -}}
-{{ .Values.containerRegistryUrl }}{{- required ".Values.containerImage.repositoryName is required" .Values.containerImage.repositoryName }}:{{ required ".Values.containerImage.tag is required" .Values.containerImage.tag }}
+{{ .Values.containerRegistryUrl }}{{- required ".Values.mainContainerImage.repositoryName is required" .Values.mainContainerImage.repositoryName }}:{{ required ".Values.mainContainerImage.tag is required" .Values.mainContainerImage.tag }}
 {{- end }}
 
 {{/*
