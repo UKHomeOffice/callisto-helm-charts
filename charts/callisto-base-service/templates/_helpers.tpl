@@ -60,7 +60,7 @@ Create the name of the service account to use
 {{/*
 Image name and tag for the main Callisto container being deployed
 */}}
-{{- define "callisto-base-service.containerImageName" -}}
+{{- define "callisto-base-service.mainContainerImageName" -}}
 {{ .Values.containerRegistryUrl }}{{- required ".Values.mainContainerImage.repositoryName is required" .Values.mainContainerImage.repositoryName }}:{{ required ".Values.mainContainerImage.tag is required" .Values.mainContainerImage.tag }}
 {{- end }}
 
@@ -68,7 +68,21 @@ Image name and tag for the main Callisto container being deployed
 Image name and tag for the database migration init container
 */}}
 {{- define "callisto-base-service.databaseMigrationImageName" -}}
-{{ .Values.containerRegistryUrl }}{{- required ".Values.databaseImage.repositoryName is required" .Values.databaseImage.repositoryName }}:{{ required ".Values.databaseImage.tag is required" .Values.databaseImage.tag }}
+{{ .Values.containerRegistryUrl }}{{- required ".Values.databaseMigrationImage.repositoryName is required" .Values.databaseMigrationImage.repositoryName }}:{{ required ".Values.databaseMigrationImage.tag is required" .Values.databaseMigrationImage.tag }}
+{{- end }}
+
+{{/*
+Host name for branch deployment
+*/}}
+{{- define "callisto-base-service.branchHostName" -}}
+{{ .Values.ingress.branch }}-{{ .Values.ingress.host }}
+{{- end }}
+
+{{/*
+TLS secret name for branch deployment
+*/}}
+{{- define "callisto-base-service.tlsSecretName" -}}
+{{ .Values.ingress.branch }}-{{ .Values.ingress.tlsSecretName }}
 {{- end }}
 
 {{/*
