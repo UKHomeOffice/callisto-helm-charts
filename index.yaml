@@ -2,6 +2,15 @@ apiVersion: v1
 entries:
   callisto-base-service:
   - apiVersion: v2
+    created: "2023-03-27T14:20:34.719443743Z"
+    description: A Helm chart for a base Callisto service
+    digest: 317634fa35adf44bfa13d103fd4fbe13bce5827b4ebf6d080bdd0648e6f52df3
+    name: callisto-base-service
+    type: application
+    urls:
+    - https://github.com/UKHomeOffice/callisto-helm-charts/releases/download/callisto-base-service-1.0.0/callisto-base-service-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
     created: "2023-03-16T16:08:23.258266558Z"
     description: A Helm chart for a base Callisto service
     digest: f38231aaa560a908a503fbeee90a9c8f1065da1b3d0bc5c2484592a71f1e5221
@@ -28,4 +37,4 @@ entries:
     urls:
     - https://github.com/UKHomeOffice/callisto-helm-charts/releases/download/callisto-base-service-0.1.0/callisto-base-service-0.1.0.tgz
     version: 0.1.0
-generated: "2023-03-16T16:08:23.258279358Z"
+generated: "2023-03-27T14:20:34.719461843Z"
