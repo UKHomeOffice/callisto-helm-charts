@@ -51,3 +51,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+servicePort: 3000
+
+containerRegistryUrl: "quay.io/ukhomeofficedigital/"
+ecrRepository: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/"

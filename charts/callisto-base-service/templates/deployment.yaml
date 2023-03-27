@@ -1,5 +1,3 @@
-{{- $ecrRepository := "340268328991.dkr.ecr.eu-west-2.amazonaws.com/" -}}
-{{- $kafkaIdentity := required ".Values.kafka.identity is required." .Values.kafka.identity -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,7 +31,7 @@ spec:
         - name: {{ include "callisto-base-service.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: {{ include "callisto-base-service.deploymentImageName" . | quote }}
+          image: {{ include "callisto-base-service.mainContainerImageName" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.image.args }}
           command: ["/bin/sh"]
@@ -45,32 +43,59 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
+            {{- if .Values.kafka }}
             {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.db }}
+            {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
+            {{- end }}
           volumeMounts:
             - mountPath: /keystore
               name: keystore-volume
-      {{- if .Values.kafka }}
       initContainers:
+        {{- if .Values.db }}
+        - name: database-schema-creation
+          image: {{ .Values.ecrRepository }}callisto/postgres:latest
+          env: {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
+          command:
+            - "sh"
+            - "-c"
+            - "export PGPASSWORD=$DATABASE_PASSWORD; psql postgresql://$DATABASE_ENDPOINT:$DATABASE_PORT/$DATABASE_NAME -U $DATABASE_USERNAME -c 'CREATE SCHEMA IF NOT EXISTS {{ .Values.db.schemaName }};'"
+        - name: database-migrations
+          image: {{ include "callisto-base-service.databaseMigrationImageName" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env: {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
+          args:
+            - "--url=jdbc:postgresql://$(DATABASE_ENDPOINT):$(DATABASE_PORT)/$(DATABASE_NAME)"
+            - "--username=$(DATABASE_USERNAME)"
+            - "--password=$(DATABASE_PASSWORD)"
+            - "--changeLogFile=changelog/db.changelog-main.yml"
+            - "--liquibaseSchemaName={{ .Values.db.schemaName }}"
+            - "update"
+        {{- end }}
+        {{- if .Values.kafka }}
         - name: create-keystore
-          image: {{ $ecrRepository }}callisto/awscli-java-openssl:latest
+          image: {{ .Values.ecrRepository }}callisto/awscli-java-openssl:latest
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- include "callisto-base-service.mskEnvironmentVariables" . | nindent 12 }}
             {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
           command: [ "/bin/sh" ]
-          args: [ "/scripts/create-keystore.sh", "{{ $kafkaIdentity }}", "/keystore" ,"$(AWS_CERTIFICATE_AUTHORITY_ARN)", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "$(AWS_ACCESS_KEY)", "$(AWS_SECRET_KEY)"]
+          args: [ "/scripts/create-keystore.sh", "{{ .Values.kafka.identity }}", "/keystore" ,"$(AWS_CERTIFICATE_AUTHORITY_ARN)", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "$(AWS_ACCESS_KEY)", "$(AWS_SECRET_KEY)"]
           volumeMounts:
             - name: scripts
               mountPath: /scripts
             - name: keystore-volume
               mountPath: /keystore
+        {{- end }}
       volumes:
+        {{- if .Values.kafka }}
         - name: scripts
           configMap:
             name: {{ include "callisto-base-service.scripts-configmap-name" . }}
         - name: keystore-volume
           emptyDir: { }
-      {{- end }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

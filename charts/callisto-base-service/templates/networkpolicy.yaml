@@ -1,0 +1,16 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "callisto-base-service.fullname" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "callisto-base-service.fullname" . }}
+  ingress:
+    - {}
+  egress:
+    - {}
+  policyTypes:
+    - Egress
+    - Ingress

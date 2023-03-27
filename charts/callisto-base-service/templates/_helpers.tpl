@@ -58,10 +58,31 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Image name and tag for the Callisto component being deployed
+Image name and tag for the main Callisto container being deployed
 */}}
-{{- define "callisto-base-service.deploymentImageName" -}}
-{{- required ".Values.image.repository is required" .Values.image.repository }}:{{ required ".Values.image.tag is required" .Values.image.tag }}
+{{- define "callisto-base-service.mainContainerImageName" -}}
+{{ .Values.containerRegistryUrl }}{{- required ".Values.mainContainerImage.repositoryName is required" .Values.mainContainerImage.repositoryName }}:{{ required ".Values.mainContainerImage.tag is required" .Values.mainContainerImage.tag }}
+{{- end }}
+
+{{/*
+Image name and tag for the database migration init container
+*/}}
+{{- define "callisto-base-service.databaseMigrationImageName" -}}
+{{ .Values.containerRegistryUrl }}{{- required ".Values.databaseMigrationImage.repositoryName is required" .Values.databaseMigrationImage.repositoryName }}:{{ required ".Values.databaseMigrationImage.tag is required" .Values.databaseMigrationImage.tag }}
+{{- end }}
+
+{{/*
+Host name for branch deployment
+*/}}
+{{- define "callisto-base-service.branchHostName" -}}
+{{ .Values.ingress.branch }}-{{ .Values.ingress.host }}
+{{- end }}
+
+{{/*
+TLS secret name for branch deployment
+*/}}
+{{- define "callisto-base-service.tlsSecretName" -}}
+{{ .Values.ingress.branch }}-{{ .Values.ingress.tlsSecretName }}
 {{- end }}
 
 {{/*
@@ -116,6 +137,38 @@ Kafka environment variables
       name: {{ include "callisto-base-service.keystore-password-secret-name" .}}
 - name: KAFKA_TOPIC
   value: {{ $defaultTopic }}
+{{- end }}
+
+{{/*
+Database environment variables
+*/}}
+{{- define "callisto-base-service.dbEnvironmentVariables" -}}
+{{- $dbSecretKeyRefName := required ".Values.db.secretKeyRefName is required." .Values.db.secretKeyRefName -}}
+- name: DATABASE_NAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: db_name
+- name: DATABASE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: username
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: password
+- name: DATABASE_ENDPOINT
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: endpoint
+- name: DATABASE_PORT
+  valueFrom:
+    secretKeyRef:
+      name: {{ $dbSecretKeyRefName }}
+      key: port
 {{- end }}
 
 {{/*
