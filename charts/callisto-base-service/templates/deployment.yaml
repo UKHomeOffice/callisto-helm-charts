@@ -49,9 +49,11 @@ spec:
             {{- if .Values.db }}
             {{- include "callisto-base-service.dbEnvironmentVariables" . | nindent 12 }}
             {{- end }}
+          {{- if .Values.kafka }}
           volumeMounts:
             - mountPath: /keystore
               name: keystore-volume
+          {{- end }}
       initContainers:
         {{- if .Values.db }}
         - name: database-schema-creation
