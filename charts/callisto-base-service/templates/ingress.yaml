@@ -1,4 +1,4 @@
-{{ if and .Values.ingress (ne .Values.ingress.branch "main")  }}
+{{- if .Values.ingress }}{{- if ne .Values.ingress.branch "main"  }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -30,4 +30,4 @@ spec:
                   name: {{ include "callisto-base-service.fullname" . }}
                   port:
                     number: {{ .Values.servicePort }}
-{{- end }}
+{{- end }}{{- end }}
