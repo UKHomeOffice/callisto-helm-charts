@@ -90,6 +90,19 @@ spec:
             - name: keystore-volume
               mountPath: /keystore
         {{- end }}
+        {{- if .Values.kafka.createTopics }}
+        - name: set-up-topic
+          image: {{ .Values.ecrRepository }}callisto/kafka:latest
+          imagePullPolicy: Always
+          env: {{ toYaml .Values.env.kafka | nindent 12 }}
+          command: [ "/bin/bash" ]
+          args: [ "/scripts/set-up-topic.sh", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "{{ .Values.kafka.createTopics.topicNames }}", "person-properties" ]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: keystore-volume
+              mountPath: /keystore
+        {{- end }}
       volumes:
         {{- if .Values.kafka }}
         - name: scripts
