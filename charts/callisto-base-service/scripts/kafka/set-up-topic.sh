@@ -7,7 +7,7 @@ root_path=${BASH_SOURCE[0]%/*}
 bootstrap_server=$1
 keystore_password=$2
 topics=/scripts/topics.txt
-properties_file=/scripts/kafka.properties
+properties_file=kafka.properties
 
 cp scripts/$properties_file tmp/
 cd /tmp
@@ -29,10 +29,7 @@ do
    # skip empty lines
    if [ -z "$line" ]; then continue; fi
    topic=($line)
-   echo "TOPIC NAME:"
-   echo $topic
    create_topic_if_not_exists $topic
-
 done
 
 apply_permissions

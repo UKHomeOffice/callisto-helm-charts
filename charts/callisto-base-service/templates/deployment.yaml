@@ -94,9 +94,11 @@ spec:
         - name: set-up-topic
           image: {{ .Values.ecrRepository }}callisto/kafka:latest
           imagePullPolicy: Always
-          env: {{ toYaml .Values.env.kafka | nindent 12 }}
+          env:
+            {{- include "callisto-base-service.mskEnvironmentVariables" . | nindent 12 }}
+            {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
           command: [ "/bin/bash" ]
-          args: [ "/scripts/set-up-topic.sh", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)", "{{ .Values.kafka.createTopics.topicNames }}", "person-properties" ]
+          args: [ "/scripts/set-up-topic.sh", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)" ]
           volumeMounts:
             - name: scripts
               mountPath: /scripts
