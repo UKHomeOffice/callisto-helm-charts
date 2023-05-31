@@ -2,7 +2,7 @@
 set -e
 
 root_path=${BASH_SOURCE[0]%/*}
-. $root_path/configure-topic.sh
+. $root_path/topic-utils.sh
 
 bootstrap_server=$1
 keystore_password=$2

@@ -91,14 +91,14 @@ spec:
               mountPath: /keystore
         {{- end }}
         {{- if .Values.kafka.createTopics }}
-        - name: set-up-topic
+        - name: set-up-topics
           image: {{ .Values.ecrRepository }}callisto/kafka:latest
           imagePullPolicy: Always
           env:
             {{- include "callisto-base-service.mskEnvironmentVariables" . | nindent 12 }}
             {{- include "callisto-base-service.kafkaEnvironmentVariables" . | nindent 12 }}
           command: [ "/bin/bash" ]
-          args: [ "/scripts/set-up-topic.sh", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)" ]
+          args: [ "/scripts/set-up-topics.sh", "$(BOOTSTRAP_SERVER)", "$(KEYSTORE_PASSWORD)" ]
           volumeMounts:
             - name: scripts
               mountPath: /scripts
