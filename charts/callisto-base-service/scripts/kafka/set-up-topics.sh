@@ -22,7 +22,7 @@ else
 fi
 
 #for loop round topics
-IFS=$'\n' topic_list=( $(grep --color=never "^[^#].*" $topics ) )
+IFS=$'\n' topic_list=( $(grep "^[^#].*" $topics ) )
 
 for line in "${topic_list[@]}"
 do
