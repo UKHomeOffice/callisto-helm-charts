@@ -48,6 +48,26 @@ databaseMigrationImage:
 ```
 Database migration will also require [Database access details](#database-access)
 
+### Kafka topic setup
+Some Callisto services may own one or more Kafka topics on MSK.
+
+Below is an example of Helm values to create Kafka topics, if they don't exist already and set up 
+their ACLs:
+```yaml
+kafka:
+  createTopics:
+    topicNames: |-
+      callisto-topic-1
+      callisto-topic-2
+    permissions: |-
+      --topic topic-1 --resource-pattern-type prefixed
+      User:service-1     Write       Allow
+      User:service-1     Describe    Allow
+      --topic topic-2 --resource-pattern-type prefixed
+      User:service-2     Read        Allow
+      User:service-2     Describe    Allow
+```
+
 ### Access to Kafka
 Some Callisto services require access to one Kafka topic (or more) on MSK.
 

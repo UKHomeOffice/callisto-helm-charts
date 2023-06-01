@@ -9,6 +9,12 @@ metadata:
     {{- include "callisto-base-service.labels" . | nindent 4 }}
 data:
   {{ (.Files.Glob "scripts/kafka/**.sh").AsConfig | nindent 2 }}
+  {{- if .Values.kafka.createTopics }}
+  topics.txt: |-
+    {{- .Values.kafka.createTopics.topicNames | nindent 4 }}
+  permissions.txt: |-
+    {{- .Values.kafka.createTopics.permissions | nindent 4 }}
+  {{- end }}
   kafka.properties: |-
     security.protocol=SSL
     ssl.keystore.location=/keystore/keystore.jks
