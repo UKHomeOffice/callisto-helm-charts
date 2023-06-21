@@ -3,41 +3,37 @@
 set -e
 
 
-# Method for retrieving current ACL for given topic and pattern type
+# Method for retrieving current ACL for given topic/group and pattern type
 # Example: Get permissions for topic prefix person
 # get_current_acl person prefixed
 # Example: Get permissions for topic person
 # get_current_acl person literal
 function get_current_acl() {
 
-    local topic=$1
-    local type=$2
     local acls
 
     # Call the kafka-acl script with relevant arguments and grep only the lines
     # form the output with the principals. Then use sed to strip out everything
     # but the required values leaving us with a space delimited list of existing
     # permissions
-    IFS=$'\n' acls=( $(kafka-acls.sh --bootstrap-server $bootstrap_server --command-config $properties_file --list --topic $topic --resource-pattern-type $type | grep -o -e '(principal.*)' | sed -E 's/.*principal=(.*), host=\*, operation=(.*), permissionType=(.*)\)/\1 \2 \3/') )
-
+    IFS=$'\n' acls=( $(kafka-acls.sh --bootstrap-server $bootstrap_server --command-config $properties_file --list "${@}" | grep -o -e '(principal.*)' | sed -E 's/.*principal=(.*), host=\*, operation=(.*), permissionType=(.*)\)/\1 \2 \3/') )
     echo "${acls[*]/%/$'\n'}"
 
 }
 
-# Function to set the ACL for the given topic and pattern type
+# Function to set the ACL for the given topic/group
 # to the specified ACL
 function set_permissions() {
 
-    local topic=$1
-    local type=$2
-    local desired_permissions=($3)
+    local parameters=("${@:1:$#-1}")
+    local desired_permissions=(${*: -1:1})
     local existing_permissions=()
     local set details principal operation permission
 
-    echo Applying desired permissions for $topic $type
+    echo Applying desired permissions for "${parameters[@]}"
 
-    # get the current ACL for given topic and pattern type
-    local current_acl=($(get_current_acl $topic $type))
+    # get the current ACL for given topic/group and pattern type
+    local current_acl=($(get_current_acl "${parameters[@]}"))
 
     # Iterate the current ACL to see if each existing permission
     # is still required. Remove any that are not desired
@@ -55,7 +51,7 @@ function set_permissions() {
             echo Removing: ${principal} ${operation} ${permission}
             kafka-acls.sh --bootstrap-server $bootstrap_server \
                 --command-config $properties_file \
-                --topic $topic --resource-pattern-type $type \
+                "${parameters[@]}" \
                 --remove --force \
                 --${permission,,}-principal $principal --operation $operation \
                 > /dev/null
@@ -83,7 +79,7 @@ function set_permissions() {
             echo Adding: ${principal} ${operation} ${permission}
             kafka-acls.sh --bootstrap-server $bootstrap_server\
                 --command-config $properties_file \
-                --topic $topic --resource-pattern-type $type \
+                "${parameters[@]}" \
                 --add --force \
                 --${permission,,}-principal $principal --operation $operation \
                 > /dev/null
@@ -96,7 +92,7 @@ function set_permissions() {
 function apply_permissions() {
 
     local acl_config line
-    local details topic pattern_type
+    local details command_args
     local permissions principal operation permission
 
     # read through the contents of the permissions file and
@@ -109,20 +105,19 @@ function apply_permissions() {
         if [ -z "$line" ]; then continue; fi
         details=($line)
 
-        # if first argument is --topic assume a new list of permissions are being specified
-        if [ "${details[0]}" = "--topic" ]
+        # if first argument is --topic or --group, assume a new list of permissions are being specified
+        if [[ "${details[0]}" =~ "--" ]]
         then
             # if permissions have already been specified for a previous topic
             # apply them.
-            if [ -n "$topic" ]
+            if [ -n "$command_args" ]
             then
                 IFS=$'\n'
-                set_permissions $topic $pattern_type "${permissions[*]/%/$'\n'}"
+                set_permissions "${command_args[@]}" "${permissions[*]/%/$'\n'}"
                 unset IFS
             fi
             # Reset the variables
-            topic=${details[1]}
-            pattern_type=${details[3]}
+            command_args=("${details[@]}")
             permissions=()
         else
 
@@ -137,17 +132,17 @@ function apply_permissions() {
 
     done
 
-    # The end of the file has been reached. If a topic
+    # The end of the file has been reached. If a topic or a group
     # was set apply the permissions.
-    if [ -n "$topic" ]
+    if [ -n "$command_args" ]
     then
         IFS=$'\n'
-        set_permissions $topic $pattern_type "${permissions[*]/%/$'\n'}"
+        set_permissions "${command_args[@]}" "${permissions[*]/%/$'\n'}"
         unset IFS
     fi
 }
 
-# Ensures a topic exists
+# Creates a topic if it doesn't exist
 function create_topic_if_not_exists() {
     local topic=$1
 

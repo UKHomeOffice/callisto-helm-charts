@@ -125,3 +125,7 @@ ingress:
   tlsSecretName: callisto-accruals-tls
   corsOrigin: "https://*.dev.callisto-notprod.homeoffice.gov.uk"
 ```
+
+## Known issue
+[Kafka SSL Certificate Rotation](https://github.com/UKHomeOffice/callisto-helm-charts/issues/10)
+[Add network policy rules](https://github.com/UKHomeOffice/callisto-helm-charts/issues/11)
